@@ -32,12 +32,14 @@ jobs:
           BASE_REF: "${{ github.event.pull_request.base.ref }}"
         run: |
           DATE=$(date -u +"%Y-%m-%d")
-          ENTRY="## Unreleased - ${DATE}\n\n- Merge: ${PR_TITLE} (#${PR_NUMBER}) by @${PR_AUTHOR}\n\n"
           echo "Preparing changelog entry for branch ${BASE_REF}"
           if [ -f CHANGELOG.md ]; then
+            # create a new entry string with actual newlines and prepend it to the existing file
+            ENTRY=$'## Unreleased - '${DATE}$"\n\n"$' - Merge: '${PR_TITLE}$' (#'${PR_NUMBER}') by @'${PR_AUTHOR}$'\n\n'
             printf "%s%s" "$ENTRY" "$(cat CHANGELOG.md)" > CHANGELOG.md.new
             mv CHANGELOG.md.new CHANGELOG.md
           else
+            ENTRY=$'## Unreleased - '${DATE}$"\n\n"$' - Merge: '${PR_TITLE}$' (#'${PR_NUMBER}') by @'${PR_AUTHOR}$'\n\n'
             printf "%s" "$ENTRY" > CHANGELOG.md
           fi
 
