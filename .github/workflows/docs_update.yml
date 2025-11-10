@@ -5,6 +5,11 @@ on:
       - master
 #    branches:  "*"
  
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+ 
 jobs:
  
   build_docs_job:
@@ -14,11 +19,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # ensure the checkout step writes auth credentials for later push operations
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.12
+          python-version: '3.12'
 
       - name: prepare env
         env:
@@ -37,6 +45,25 @@ jobs:
       - name: Build HTML
         run: |
           make html
+        shell: bash
+
+      - name: Debug git state
+        run: |
+          echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
+          git status --porcelain --untracked-files=no || true
+          git remote -v || true
+        shell: bash
+
+      - name: Ensure git user is configured
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "git user configured:" $(git config user.name) $(git config user.email)
+        shell: bash
+
+      - name: Inspect built HTML (short)
+        run: |
+          ls -la docs/_build/html | sed -n '1,200p' || true
         shell: bash
 
       - name: Deploy to gh-pages
