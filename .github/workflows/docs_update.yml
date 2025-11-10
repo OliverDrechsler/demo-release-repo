@@ -4,9 +4,9 @@ on:
      branches:
       - master
 #    branches:  "*"
- 
+
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
  
