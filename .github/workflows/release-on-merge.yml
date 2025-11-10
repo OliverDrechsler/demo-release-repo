@@ -116,3 +116,4 @@ jobs:
             **Version bump type:** ${{ steps.next_tag.outputs.bump_type }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
