@@ -1,0 +1,79 @@
+name: build github_pages documentation
+on:
+  push:
+     branches:
+      - master
+#    branches:  "*"
+ 
+jobs:
+ 
+  build_docs_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.12
+
+      - name: prepare env
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git rsync python3-pip
+        shell: bash
+
+      - name: Install dependencies
+        run: |
+          pip3 install -r requirements.txt
+          pip3 install sphinx sphinx-rtd-theme sphinx_md ghp-import myst-parser
+        shell: bash
+
+      - name: Build HTML
+        run: |
+          make html
+        shell: bash
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+          publish_branch: gh-pages
+          keep_files: false
+
+      - name: Comment PR(s) with docs URL
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const commit = context.sha;
+
+            // Find PRs associated with the commit
+            const pulls = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: commit,
+            });
+
+            if (!pulls.data || pulls.data.length === 0) {
+              console.log('No PRs associated with this commit; skipping comment.');
+              return;
+            }
+
+            const url = `https://${owner}.github.io/${repo}/`;
+            for (const pr of pulls.data) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr.number,
+                body: `Documentation deployed: ${url}`,
+              });
+            }

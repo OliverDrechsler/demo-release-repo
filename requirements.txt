@@ -1,0 +1,8 @@
+pytest==8.4.2
+pytest-cov==7.0.0
+
+# Documentation dependencies
+sphinx>=6.0.0
+sphinx-rtd-theme>=1.2.0
+myst-parser>=0.18.0
+ghp-import>=2.0.0

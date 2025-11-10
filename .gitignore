@@ -1,0 +1,6 @@
+# Ignore generated Sphinx HTML build
+docs/_build/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
